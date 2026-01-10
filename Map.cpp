@@ -3,6 +3,7 @@
 #include "texture.h"
 #include <DirectXMath.h>
 #include "model.h"
+#include "DebugDraw.h"
 using namespace DirectX;
 
 constexpr int TEXTURE_MAX = 100;
@@ -112,6 +113,7 @@ void Map_Draw()
     {
         block.Draw();
     }
+    DebugDraw_Draw();
 }
 
 void Block::Draw() const
@@ -152,4 +154,7 @@ void Block::Draw() const
     default:
         break;
     }
+    // デバッグ描画：AABB を赤いラインで表示
+    DebugDraw_AddAABB(m_Aabb, { 1.0f, 0.0f, 0.0f, 1.0f });
+   
 }

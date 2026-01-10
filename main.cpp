@@ -52,6 +52,7 @@ main.cpp [main.cpp]
 #include "fade.h"
 
 #include "scene.h"
+#include "Mouselogger.h"
 using namespace DirectX;
 //===============================================================
 //  ウィンドウ情報
@@ -133,7 +134,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstanc
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 	Mouse_Initialize(hWnd);
-	
+	MouseLogger_Initialize();   // ← 追加！
 
 	//Fade_StartIn(0.0f, false, { 0.0f,0.0f,0.0f,1.0f }); // フェードインを開始
 
@@ -241,9 +242,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstanc
 				KeyLogger_Update();
 				Fade_Update(elapsed_time); // フェードの更新処理
 				Scene_Update(elapsed_time); // シーンの更新処理
-				
-				MouseState_tag ms{};
-				Mouse_GetState(&ms); // マウスの状態を取得
+				MouseLogger_Update();
+				//MouseState_tag ms{};
+				//Mouse_GetState(&ms); // マウスの状態を取得
 			
 
 

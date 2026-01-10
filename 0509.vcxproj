@@ -144,11 +144,13 @@
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Ball.cpp" />
     <ClCompile Include="BillBord.cpp" />
+    <ClCompile Include="bowlingBall.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="camera_fixed.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="cube.cpp" />
     <ClCompile Include="debug.cpp" />
+    <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_text.cpp" />
     <ClCompile Include="direct3d.cpp" />
@@ -165,6 +167,7 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="mouse.cpp" />
+    <ClCompile Include="Mouselogger.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="polygon.cpp" />
     <ClCompile Include="result.cpp" />
@@ -187,11 +190,13 @@
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Ball.h" />
     <ClInclude Include="BillBord.h" />
+    <ClInclude Include="bowlingBall.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="camera_fixed.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="cube.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="direct3d.h" />
@@ -208,6 +213,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="mouse.h" />
+    <ClInclude Include="Mouselogger.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="polygon.h" />
     <ClInclude Include="game_score.h" />

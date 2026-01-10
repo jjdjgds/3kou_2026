@@ -24,6 +24,8 @@ static ID3D11Buffer* g_pVSConstantBuffer0 = nullptr;
 
 
 static ID3D11Buffer* g_pPSConstantBuffer = nullptr;
+
+static ID3D11Buffer* g_pPSConstantBuffer1 = nullptr;
 static ID3D11Buffer* g_pPSConstantBuffer2 = nullptr;
 
 static ID3D11PixelShader* g_pPixelShader = nullptr;
@@ -32,6 +34,11 @@ static ID3D11SamplerState* g_pSamplerState = nullptr; // ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg‚¢‚­‚
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
+struct PS_CB1
+{
+	DirectX::XMFLOAT4 diffuse_color;
+	DirectX::XMFLOAT4 diffuse_world_vector;
+};
 
 bool Shader3d_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -139,9 +146,13 @@ bool Shader3d_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[—p’è”ƒoƒbƒtƒ@‚Ìì¬
 	
+	buffer_desc.ByteWidth = sizeof(PS_CB1); // ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer1);
+
 	buffer_desc.ByteWidth = sizeof(XMFLOAT4); // ƒoƒbƒtƒ@‚ÌƒTƒCƒY
 
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer);
+	
 	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pPSConstantBuffer2);
 
 
@@ -216,7 +227,8 @@ void Shader3d_Begin()
 
 	// ’è”ƒoƒbƒtƒ@‚ð•`‰æƒpƒCƒvƒ‰ƒCƒ“‚ÉÝ’è
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer0);
-	
+	g_pContext->PSSetConstantBuffers(1, 1, &g_pPSConstantBuffer1);
+
 	g_pContext->PSSetConstantBuffers(2, 1, &g_pPSConstantBuffer2);
 
 

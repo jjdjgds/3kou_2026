@@ -1,99 +1,144 @@
-﻿/*==========================================================================
-
-ショットの制御[Shot.cpp]
-
-												Author : hidetoshi muramatu
-												Date   : 2025/
----------------------------------------------------------------------------
-
-修正点:
-1.  **クラッシュの原因除去**: Shot_Update内の `front *= 10;` を削除。この過剰なスケーリングがXMMatrixLookAtLHでのアサーションエラーを引き起こしていました。
-2.  **回転ロジックの修正**: Yaw (ry) と Pitch (axis) の両方が正しく適用されるように修正。
-3.  **移動ロジックの追加**: g_positionを毎フレーム更新し、ショットが移動するようにしました。
-4.  **速度の分離**: g_Frontを単位方向ベクトルとして保持し、g_Velocityを分離しました。
-
-=========================================================================*/
-
-#include "Shot.h"
+﻿#include "Shot.h"
 #include "model.h"
+#include "mouse.h"
 #include "keylogger.h"
+#include "Mouselogger.h"
+
 using namespace DirectX;
 
 static XMFLOAT3 g_position;
 static constexpr float OFFSET_LENGTH = 0.5f;
-static XMFLOAT3 g_Front{}; // 進行方向を示す単位ベクトル (Direction vector)
+
+static XMFLOAT3 g_Front{ 0,0,1 };   // 単位方向
 static MODEL* g_Model{};
-static float g_Speed = 50.0f; // ショットの移動速度
-static XMFLOAT3 g_Velocity{}; // 実際の速度ベクトル (Direction * Speed)
 
-void Shot_Initialize(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& front)
+static float g_Power = 0.0f;
+
+// ===== マウススイング用 =====
+static POINT g_PrevMousePos{};
+static bool  g_IsSwinging = false;
+static float g_SwingAccum = 0.0f;
+// 定数
+static constexpr float DIR_SMOOTH = 0.15f;
+
+float Shot_GetPower()
 {
+    return g_Power;
+}
 
-	g_position = position;
+void Shot_ResetPower()
+{
+    g_Power = 0.0f;
+    g_SwingAccum = 0.0f;
+    g_Front = { 0,0,1 };   // ★これ必須
+    GetCursorPos(&g_PrevMousePos);
+}
 
-	// g_Frontを単位ベクトルとして初期化
-	XMVECTOR frontVec = XMVector3Normalize(XMLoadFloat3(&front));
-	XMStoreFloat3(&g_Front, frontVec);
-	// 速度も初期化
-	XMStoreFloat3(&g_Velocity, frontVec * g_Speed);
+void Shot_Initialize(const XMFLOAT3& position, const XMFLOAT3& front)
+{
+    g_position = position;
+    XMStoreFloat3(&g_Front, XMVector3Normalize(XMLoadFloat3(&front)));
+    g_Model = ModelLoad("rom\\Model\\yajirushi.fbx", 0.1f);
 
-	g_Model = ModelLoad("rom\\Model\\yajirushi.fbx",0.1);
-
+    GetCursorPos(&g_PrevMousePos);
 }
 
 void Shot_Finalize()
 {
-	ModelRelease(g_Model);
+    ModelRelease(g_Model);
 }
 
-void Shot_Update(double et)
+void Shot_Update(double)
 {
-	float y_angle{ 0.0f };
-	float x_angle{ 0.0f };
-	float frameTime = (float)et; // フレーム時間をfloatにキャスト
+    POINT cur;
+    GetCursorPos(&cur);
 
-	// 入力による回転量を取得
-	if (KeyLogger_IsPressed(KK_T))
-	{
-		y_angle = 1.0f * frameTime;
-	}
-	if (KeyLogger_IsPressed(KK_G))
-	{
-		y_angle = -1.0f * frameTime;
-	}
-	if (KeyLogger_IsPressed(KK_F))
-	{
-		x_angle = -1.0f * frameTime;
-	}
-	if (KeyLogger_IsPressed(KK_H))
-	{
-		x_angle = 1.0f * frameTime;
-	}
+    float dx = float(cur.x - g_PrevMousePos.x);
+    float dy = float(cur.y - g_PrevMousePos.y);
+    g_PrevMousePos = cur;
 
-	XMMATRIX rotationY = XMMatrixRotationY(y_angle);
-	XMVECTOR front = XMVector3TransformNormal(XMLoadFloat3(&g_Front), rotationY);
-	XMVECTOR right = XMVector3Cross(XMVECTOR{ 0.0f,1.0f,0.0f }, front);
-	XMMATRIX axis = XMMatrixRotationAxis(right, x_angle);
-	front = XMVector3TransformNormal(front, axis);
-	
-	XMStoreFloat3(&g_Front, front);
+    // ===== 左ボタン押下中：スイング =====
+    if (MouseLogger_IsPressed(MouseKey::Left))
+    {
+        if (!g_IsSwinging)
+        {
+            g_IsSwinging = true;
+            g_SwingAccum = 0.0f;
+        }
+
+        // スイング量（縦のみ）
+        float swing = fabsf(dy);
+        g_SwingAccum += swing;
+
+        // ===== 向き更新（平滑化あり）=====
+        float yaw = dx * 0.002f;
+        float pitch = -dy * 0.002f;
+
+        XMVECTOR currentFront = XMLoadFloat3(&g_Front);
+        XMVECTOR targetFront = currentFront;
+
+        // Yaw
+        targetFront = XMVector3TransformNormal(
+            targetFront,
+            XMMatrixRotationY(yaw)
+        );
+
+        // Pitch
+        XMVECTOR right = XMVector3Normalize(
+            XMVector3Cross(XMVectorSet(0, 1, 0, 0), targetFront)
+        );
+
+        targetFront = XMVector3TransformNormal(
+            targetFront,
+            XMMatrixRotationAxis(right, pitch)
+        );
+
+        targetFront = XMVector3Normalize(targetFront);
+
+        // ★ 平滑化（ここが本命）
+        XMVECTOR smoothFront =
+            XMVectorLerp(currentFront, targetFront, DIR_SMOOTH);
+
+        smoothFront = XMVector3Normalize(smoothFront);
+        XMStoreFloat3(&g_Front, smoothFront);
+    }
+    // ===== 離した瞬間：投擲確定 =====
+    else if (g_IsSwinging)
+    {
+        g_Power = Clamp(g_SwingAccum * 0.05f, 5.0f, 30.0f);
+        g_IsSwinging = false;
+    }
 }
 
+float Clamp(float v, float minV, float maxV)
+{
+    if (v < minV) return minV;
+    if (v > maxV) return maxV;
+    return v;
+}
 void Shot_Draw()
 {
-	XMMATRIX mtxRotation = XMMatrixLookAtLH(XMVECTOR{ 0.0f,0.0f,0.0f }, XMLoadFloat3(&g_Front), XMVECTOR{ 0.0f,1.0f,0.0f });
-	XMMATRIX mtxWorld =
-		XMMatrixTranslation(0.0f, 0.0f, OFFSET_LENGTH) *
-		XMMatrixTranspose(mtxRotation) * 
-		XMMatrixTranslation(g_position.x, g_position.y, g_position.z);
-	ModelDraw(g_Model, mtxWorld);
+    XMMATRIX rot = XMMatrixLookAtLH(
+        XMVectorZero(),
+        XMLoadFloat3(&g_Front),
+        XMVectorSet(0, 1, 0, 0)
+    );
+
+    XMMATRIX world =
+        XMMatrixTranslation(0, 0, OFFSET_LENGTH) *
+        XMMatrixTranspose(rot) *
+        XMMatrixTranslation(g_position.x, g_position.y, g_position.z);
+
+    ModelDraw(g_Model, world);
 }
 
-const DirectX::XMFLOAT3& Shot_GetVelocity()
+const XMFLOAT3& Shot_GetVelocity()
 {
-	return g_Front;
+    return g_Front;
 }
-void Shot_SetPosition(const DirectX::XMFLOAT3& position)
+
+void Shot_SetPosition(const XMFLOAT3& position)
 {
-	g_position = position;
+    g_position = position;
 }
+
