@@ -105,7 +105,7 @@ void Shot_Update(double)
     // ===== 離した瞬間：投擲確定 =====
     else if (g_IsSwinging)
     {
-        g_Power = Clamp(g_SwingAccum * 0.05f, 5.0f, 30.0f);
+        g_Power = Clamp(g_SwingAccum * 0.05f, 5.0f, 50.0f);
         g_IsSwinging = false;
     }
 }

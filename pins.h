@@ -37,6 +37,7 @@ public:
     const DirectX::XMFLOAT3& GetVelocity() const { return m_velocity; }
 
 private:
+
     // à íuÅEâÒì]
     DirectX::XMFLOAT3 m_position;
     DirectX::XMFLOAT3 m_rotation;
