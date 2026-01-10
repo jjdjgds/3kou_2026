@@ -108,12 +108,12 @@ void PinManager::ResolveBallPinHit(BowlingBall& ball, Pins& pin)
     XMFLOAT3 hitPoint = pin.GetPosition();
     hitPoint.y += 1.0f;
 
-    pin.Hit(
-        {
-            XMVectorGetX(impulse),
-            XMVectorGetY(impulse),
-            XMVectorGetZ(impulse)
-        },
-        hitPoint
-    );
+    XMFLOAT3 impulseVec;
+    XMStoreFloat3(&impulseVec, impulse);
+
+    // ★ 上方向ボーナス
+    impulseVec.y += impulsePower * 1.5f;
+
+    pin.Hit(impulseVec, hitPoint);
+
 }
