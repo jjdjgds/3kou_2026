@@ -124,24 +124,24 @@ void Game_Update(double elapsed_time)
 	Billboard_SetViewMatrix(g_FixedCameras[g_FixedCameraIndex]->GetViewMatrix());
 
 	//Trail_SetCameraPosition(g_FixedCameras[g_FixedCameraIndex]->GetPosition());
-	if (Ball_IsStationary())
-	{
-		Shot_SetPosition(Ball_GetPosition());
+	//if (Ball_IsStationary())
+	//{
+	//	Shot_SetPosition(Ball_GetPosition());
 
-		if (/*!MouseLogger_IsPressed(MouseKey::Left) &&*/ Shot_GetPower() > 0.0f)
-		{
-			XMFLOAT3 dir = Shot_GetVelocity();
-			float power = Shot_GetPower();
+	//	if (/*!MouseLogger_IsPressed(MouseKey::Left) &&*/ Shot_GetPower() > 0.0f)
+	//	{
+	//		XMFLOAT3 dir = Shot_GetVelocity();
+	//		float power = Shot_GetPower();
 
-			g_BowlingBall.AddForce({
-				dir.x * power,
-				0.0f,
-				dir.z * power
-				});
+	//		g_BowlingBall.AddForce({
+	//			dir.x * power,
+	//			0.0f,
+	//			dir.z * power
+	//			});
 
-			Shot_ResetPower();
-		}
-	}
+	//		Shot_ResetPower();
+	//	}
+	//}
 
 	Score_Update();
 	/*for (auto& a : g_pins)
@@ -156,6 +156,12 @@ void Game_Update(double elapsed_time)
 			}
 		}
 	}*/
+
+	if (Shot_IsFired())
+	{
+		g_BowlingBall.AddForce(Shot_GetShotVelocity());
+		Shot_ResetPower();   // ó‘Ô‰Šú‰»
+	}
 
 	g_Pinmanager.Update(elapsed_time, g_BowlingBall);
 
@@ -217,6 +223,9 @@ void Game_Draw()
 	}
 	Trail_Draw();*/
 	//ModelDraw(g_pPenis, XMMatrixIdentity());
+	
+		Shot_Draw();
+	
 
 	Billboard_SetViewMatrix(g_pDebugCamera->GetViewMatrix());
 

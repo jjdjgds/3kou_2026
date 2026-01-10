@@ -3,6 +3,7 @@
 #include "mouse.h"
 #include "keylogger.h"
 #include "Mouselogger.h"
+#include "debug_ostream.h"
 
 using namespace DirectX;
 
@@ -20,19 +21,46 @@ static bool  g_IsSwinging = false;
 static float g_SwingAccum = 0.0f;
 // 定数
 static constexpr float DIR_SMOOTH = 0.15f;
+static float g_ChargeTimer = 0.0f;
+static int   g_HitCount = 0;
+
+static constexpr float CHARGE_LIMIT = 3.0f; // 2秒
+static constexpr float POWER_PER_HIT = 5.0f;
+static float g_AimTime = 0.0f;
+static constexpr float SWING_SPEED = 3.0f;   // 揺れ速度
+static constexpr float MAX_ANGLE = XM_PIDIV4; // ±45°
+static float g_AimAngle = 0.0f;
+static constexpr float BALL_RADIUS = -0.5f;
+
 
 float Shot_GetPower()
 {
     return g_Power;
 }
+bool Shot_IsFired()
+{
+    return g_State == ShotState::Fired;
+}
+
+XMFLOAT3 Shot_GetShotVelocity()
+{
+    return {
+        g_Front.x * g_Power,
+        g_Front.y * g_Power,
+        g_Front.z * g_Power
+    };
+}
 
 void Shot_ResetPower()
 {
     g_Power = 0.0f;
-    g_SwingAccum = 0.0f;
-    g_Front = { 0,0,1 };   // ★これ必須
-    GetCursorPos(&g_PrevMousePos);
+    g_HitCount = 0;
+    g_ChargeTimer = 0.0f;
+    g_AimTime = 0.0f;
+    g_Front = { 0,0,1 };
+    g_State = ShotState::Charge;
 }
+
 
 void Shot_Initialize(const XMFLOAT3& position, const XMFLOAT3& front)
 {
@@ -48,7 +76,7 @@ void Shot_Finalize()
     ModelRelease(g_Model);
 }
 
-void Shot_Update(double)
+void Shot_Update(double et)
 {
     POINT cur;
     GetCursorPos(&cur);
@@ -57,57 +85,52 @@ void Shot_Update(double)
     float dy = float(cur.y - g_PrevMousePos.y);
     g_PrevMousePos = cur;
 
-    // ===== 左ボタン押下中：スイング =====
-    if (MouseLogger_IsPressed(MouseKey::Left))
+    if (g_State == ShotState::Charge)
     {
-        if (!g_IsSwinging)
+        hal::dout << "Charge\n";
+        g_ChargeTimer += (float)et;
+
+        if (KeyLogger_IsTrigger(KK_P)) // 連打キー
         {
-            g_IsSwinging = true;
-            g_SwingAccum = 0.0f;
+            g_HitCount++;
         }
 
-        // スイング量（縦のみ）
-        float swing = fabsf(dy);
-        g_SwingAccum += swing;
+        if (g_ChargeTimer >= CHARGE_LIMIT)
+        {
+            if (g_HitCount > 0)
+            {
+                g_Power = Clamp(g_HitCount * POWER_PER_HIT, 5.0f, 50.0f);
+                g_State = ShotState::Aim;
+            }
+            else
+            {
+                // 押してない → 何も起きない（リセット or 継続）
+                g_ChargeTimer = 0.0f;
+                g_HitCount = 0;
+            }
+        }
 
-        // ===== 向き更新（平滑化あり）=====
-        float yaw = dx * 0.002f;
-        float pitch = -dy * 0.002f;
-
-        XMVECTOR currentFront = XMLoadFloat3(&g_Front);
-        XMVECTOR targetFront = currentFront;
-
-        // Yaw
-        targetFront = XMVector3TransformNormal(
-            targetFront,
-            XMMatrixRotationY(yaw)
-        );
-
-        // Pitch
-        XMVECTOR right = XMVector3Normalize(
-            XMVector3Cross(XMVectorSet(0, 1, 0, 0), targetFront)
-        );
-
-        targetFront = XMVector3TransformNormal(
-            targetFront,
-            XMMatrixRotationAxis(right, pitch)
-        );
-
-        targetFront = XMVector3Normalize(targetFront);
-
-        // ★ 平滑化（ここが本命）
-        XMVECTOR smoothFront =
-            XMVectorLerp(currentFront, targetFront, DIR_SMOOTH);
-
-        smoothFront = XMVector3Normalize(smoothFront);
-        XMStoreFloat3(&g_Front, smoothFront);
     }
-    // ===== 離した瞬間：投擲確定 =====
-    else if (g_IsSwinging)
+    if (g_State == ShotState::Aim)
     {
-        g_Power = Clamp(g_SwingAccum * 0.05f, 5.0f, 50.0f);
-        g_IsSwinging = false;
+        g_AimTime += (float)et;
+
+        g_AimAngle = sinf(g_AimTime * SWING_SPEED) * MAX_ANGLE;
+
+        XMMATRIX rotY = XMMatrixRotationY(g_AimAngle);
+        XMVECTOR base = XMVectorSet(0, 0, 1, 0);
+
+        XMVECTOR dir = XMVector3TransformNormal(base, rotY);
+        XMStoreFloat3(&g_Front, XMVector3Normalize(dir));
+
+        if (KeyLogger_IsTrigger(KK_O))
+        {
+            g_State = ShotState::Fired;
+        }
     }
+
+
+
 }
 
 float Clamp(float v, float minV, float maxV)
@@ -118,19 +141,36 @@ float Clamp(float v, float minV, float maxV)
 }
 void Shot_Draw()
 {
-    XMMATRIX rot = XMMatrixLookAtLH(
-        XMVectorZero(),
-        XMLoadFloat3(&g_Front),
-        XMVectorSet(0, 1, 0, 0)
-    );
+    if (g_State != ShotState::Aim)
+        return;
 
+    // 向き（Yaw回転のみ）
+    XMMATRIX rot = XMMatrixRotationY(g_AimAngle);
+
+    // ローカル前方にオフセット
+    XMVECTOR offset =
+        XMVector3TransformCoord(
+            XMVectorSet(0, 0, OFFSET_LENGTH, 0),
+            rot
+        );
+
+    XMFLOAT3 ofs;
+    XMStoreFloat3(&ofs, offset);
+
+    // ワールド行列
     XMMATRIX world =
-        XMMatrixTranslation(0, 0, OFFSET_LENGTH) *
-        XMMatrixTranspose(rot) *
-        XMMatrixTranslation(g_position.x, g_position.y, g_position.z);
+        rot *
+        XMMatrixTranslation(
+            g_position.x + ofs.x,
+            g_position.y - BALL_RADIUS,
+            g_position.z + ofs.z
+        );
+
 
     ModelDraw(g_Model, world);
 }
+
+
 
 const XMFLOAT3& Shot_GetVelocity()
 {

@@ -4,6 +4,8 @@
 #include "shader3d.h"
 #include "DebugDraw.h" // ’Ç‰Á
 #include "Map.h"
+#include "Shot.h"
+
 using namespace DirectX;
 static MODEL* g_pBall{};
 
@@ -109,13 +111,17 @@ void BowlingBall::Update(float deltaTime)
         // •â³Œã‚É AABB ‚ğˆÚ“®‚µ‚ÄŸ‚Ì”»’è‚É”½‰f
         m_Aabb.Move(m_position);
     }
+  
+
 
     // ===== –€C =====
     if (m_onGround)
     {
-        //m_velocity.x *= 0.98f;
-        //m_velocity.z *= 0.98f;
+        m_velocity.x *= 0.98f;
+        m_velocity.z *= 0.98f;
     }
+    Shot_SetPosition(m_position);
+
 }
 
 
