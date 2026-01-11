@@ -139,6 +139,7 @@ void BowlingBall::Draw()
 {
     Shader3d_Begin();
     XMMATRIX mtxWorld = XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
+    m_mtxWorld = mtxWorld;
 
     // ‚±‚±‚ÍDirect3D‘¤‚Å‰~ or ƒ‚ƒfƒ‹•`‰æ
     ModelDraw(g_pBall, mtxWorld);

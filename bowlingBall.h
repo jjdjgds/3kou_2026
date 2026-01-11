@@ -31,6 +31,8 @@ public:
     // 操作用
     void AddForce(const DirectX::XMFLOAT3& force);
 
+	DirectX::XMMATRIX GetWorldMatrix() const { return m_mtxWorld; }
+
     // 取得
   //  const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
     float GetRadius() const { return m_radius; }
@@ -47,6 +49,6 @@ private:
      AABB m_Aabb{};
     float m_radius = 0.3f;   // レーン基準の半径
     float m_mass = 6.8f;    // ボーリング球っぽい重さ(kg)
-   
+    DirectX::XMMATRIX m_mtxWorld{};
 
 };

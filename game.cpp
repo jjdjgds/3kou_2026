@@ -85,7 +85,7 @@ void Game_Initialize()
 	Trail_Initialize();
 	//df.fbx
 	//g_pPenis = ModelLoad("rom\\Model\\yajirusi.fbx",0.1);
-	g_texid = Texture_Load(L"rom\\runningman003.png");
+	g_texid = Texture_Load(L"rom\\Texture\\gra_effect_lightA.png");
 	g_pKirby = ModelLoad("rom\\Model\\kirby.fbx",0.1);
 	g_texid2 = Texture_Load(L"rom\\bomb3.png");
 	g_Pinmanager.Initialize();
@@ -121,7 +121,7 @@ void Game_Update(double elapsed_time)
 		}
 	}
 	g_FixedCameras[g_FixedCameraIndex]->SetMatrix();
-	Billboard_SetViewMatrix(g_FixedCameras[g_FixedCameraIndex]->GetViewMatrix());
+	Billboard_SetViewMatrix(g_pDebugCamera->GetViewMatrix());
 
 	//Trail_SetCameraPosition(g_FixedCameras[g_FixedCameraIndex]->GetPosition());
 	//if (Ball_IsStationary())
@@ -229,12 +229,25 @@ void Game_Draw()
 
 	Billboard_SetViewMatrix(g_pDebugCamera->GetViewMatrix());
 
-	
+
+
+	//Billboard_Draw(g_texid, g_BowlingBall.GetWorldMatrix(),
+	//	{ 140.0f,200.0f }, { 0.0f,0.0f }); // world を Identity にするか、任意のワールド行列を渡す
+	//
 	Map_Draw();
 	DebugDraw_Draw();
 	//2D描画はここに
 	Direct3D_SetDepthTest(false);
 	//Score_Draw();
+	/*Billboard_Draw(
+		g_texid,
+		g_BowlingBall.GetWorldMatrix(),
+		{ 140.0f,200.0f },
+		{ 140.0f,200.0f },
+		{ 14.f,20.f },
+		{ 1.0,0.5,0.1,1.0 },
+		{ 0,0 }
+	);*/
 
 	//Billboard_Draw(g_texid, XMMatrixTranslation(3.0, 2.0f, 2.0f), 
 	//	{ 140.0f,200.0f }, { 14.0f,20.0f }); // world を Identity にするか、任意のワールド行列を渡す
