@@ -240,8 +240,8 @@ void Shot_DrawUI()
     const float cx = 300.0f;
     const float cy = 600.0f;
     const float radius = 200.0f;
-    const float thickness = 14.0f;
-    const int   SEGMENTS = 72;
+    const float thickness = 50.0f;
+    const int   SEGMENTS = 144;
 
     int drawCount = (int)(SEGMENTS * ratio);
     if (drawCount < 1 && ratio > 0.0f)
