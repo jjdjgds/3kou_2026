@@ -26,7 +26,7 @@ namespace hal
 		// 注意！初期化で外部から設定されるもの。Release不要。
 		ID3D11Device* m_pDevice = nullptr;
 		ID3D11DeviceContext* m_pContext = nullptr;
-
+		float m_Scale  { 1.0f };
 		float m_OffsetX{ 0.0f }; // オフセットX座標
 		float m_OffsetY{ 0.0f }; // オフセットY座標
 		ULONG m_MaxLine{ 0 }; // 最大行数
@@ -84,6 +84,9 @@ namespace hal
 		void Draw();
 
 		void Clear(); // 登録されているテキストをクリア
+
+		void SetOffset(float x, float y);
+		void SetScale(float scale);
 
 	private:
 		

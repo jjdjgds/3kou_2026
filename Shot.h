@@ -18,6 +18,9 @@
 #include "DirectXMath.h"
 #include "mouse.h"
 
+
+
+
 enum class ShotState
 {
     Charge,     // ˜A‘Å‚Åƒpƒ[Œˆ’è

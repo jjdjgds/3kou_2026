@@ -6,7 +6,8 @@
 #include "debug_ostream.h"
 #include "sprite.h"
 #include "texture.h"
-
+#include "debug_text.h"
+#include "direct3d.h"
 using namespace DirectX;
 
 static XMFLOAT3 g_position;
@@ -16,7 +17,13 @@ static XMFLOAT3 g_Front{ 0,0,1 };   // 単位方向
 static MODEL* g_Model{};
 
 static float g_Power = 0.0f;
+static hal::DebugText* g_DebugText = nullptr;
 
+const float cx = 300.0f;
+const float cy = 600.0f;
+
+const float charW = 32.0f;
+const float charH = 32.0f;
 
 
 
@@ -77,12 +84,24 @@ void Shot_Initialize(const XMFLOAT3& position, const XMFLOAT3& front)
     g_Model = ModelLoad("rom\\Model\\yajirushi.fbx", 0.1f);
     g_PowerBarTex = Texture_Load(L"rom/white_8x8.png");
     g_IsCharging = true;
+    
     //GetCursorPos(&g_PrevMousePos);
+    // ===== DebugText 初期化 =====
+    g_DebugText = new hal::DebugText(
+        Direct3D_GetDevice(),          // ← あなたの環境の device
+        Direct3D_GetContext(),         // ← context
+        L"rom/consolab_ascii_512.png",      // フォントテクスチャ
+        (float)Direct3D_GetBackBufferWidth(),
+        (float)Direct3D_GetBackBufferHeight(),
+        260.0f,               // 表示位置X
+        520.0f                // 表示位置Y（円ゲージ中央付近）
+    );
 }
 
 void Shot_Finalize()
 {
     ModelRelease(g_Model);
+
 }
 
 void Shot_Update(double et)
@@ -237,6 +256,7 @@ void Shot_DrawUI()
 
     float ratio = Shot_GetChargeRatio();
 
+    // ================= 円ゲージ =================
     const float cx = 300.0f;
     const float cy = 600.0f;
     const float radius = 200.0f;
@@ -247,24 +267,13 @@ void Shot_DrawUI()
     if (drawCount < 1 && ratio > 0.0f)
         drawCount = 1;
 
-    // ===== 色計算 =====
-    bool isMax = (ratio >= 0.98f);
+    XMFLOAT4 activeColor(
+        1.0f,
+        0.3f + 0.7f * ratio,
+        0.1f,
+        1.0f
+    );
 
-    float blink = isMax
-        ? (sinf(g_UIBlinkTime * 8.0f) * 0.5f + 0.5f)
-        : 1.0f;
-
-    XMFLOAT4 activeColor =
-        isMax
-        ? XMFLOAT4(1.0f, blink * 0.2f, blink * 0.2f, 1.0f) // 赤点滅
-        : XMFLOAT4(
-            1.0f,
-            0.3f + 0.7f * ratio, // 黄寄り
-            0.1f,
-            1.0f
-        );
-
-    // ===== 円ゲージ =====
     for (int i = 0; i < SEGMENTS; ++i)
     {
         float t = (float)i / (float)SEGMENTS;
@@ -288,22 +297,28 @@ void Shot_DrawUI()
         );
     }
 
-    // ===== 中央数値表示 =====
+    // ================= 数値表示 =================
+    if (!g_DebugText)
+        return;
+
     int powerValue = (int)(ratio * MAX_POWER + 0.5f);
 
-    // ※ 文字描画関数は環境依存
-    // 例：Font_DrawText(x, y, size, color, "text");
-    char buf[16];
-    sprintf_s(buf, "%d", powerValue);
+    char value[8];
+    sprintf_s(value, "%3d", powerValue);
 
-    //Font_DrawText(
-    //    cx - 18.0f,     // 中央寄せ調整
-    //    cy - 12.0f,
-    //    24.0f,
-    //    isMax ? XMFLOAT4(1, 0.3f, 0.3f, 1) : XMFLOAT4(1, 1, 1, 1),
-    //    buf
-    //);
+    constexpr float charW = 32.0f;
+    constexpr float charH = 32.0f;
+
+    float valueX = cx - charW * 5.f;
+    float valueY = cy - charH * 0.3f;
+
+    g_DebugText->Clear();
+    g_DebugText->SetScale(3.f);
+    g_DebugText->SetOffset(valueX, valueY);
+    g_DebugText->SetText(value, { 0,0,0,1 });
+    g_DebugText->Draw();
 }
+
 
 bool Shot_ConsumeFire()
 {
@@ -315,4 +330,6 @@ bool Shot_ConsumeFire()
     }
     return false;
 }
+
+
 

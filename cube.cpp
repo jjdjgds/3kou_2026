@@ -166,7 +166,7 @@ void Cube_Update(double elapsedTime)
 //	UINT offset = 0;
 //	g_pContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 //
-//	const float SCREEN_WIDTH = (float)Direct3D_GetBackBufferWidth();
+//	const float SCREEN_WIDTH =  (float)Direct3D_GetBackBufferWidth();
 //	const float SCREEN_HEIGHT = (float)Direct3D_GetBackBufferHeight();
 //
 //	XMMATRIX scalingMatrix = XMMatrixScaling

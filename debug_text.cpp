@@ -304,22 +304,25 @@ namespace hal
 						float v0 = (index / 16) / 16.0f;
 						float u1 = (index % 16 + 1) / 16.0f;
 						float v1 = (index / 16 + 1) / 16.0f;
-						float x = m_OffsetX + columnCount * m_CharacterSpacing;
-						float y = m_OffsetY + lineCount * m_LineSpacing;
+						float x = m_OffsetX + columnCount * m_CharacterSpacing * m_Scale;
+						float y = m_OffsetY + lineCount * m_LineSpacing * m_Scale;
+						float w = characterWidth * m_Scale;
+						float h = characterHeight * m_Scale;
 
-						v[0].position = { x, y, 1.0f };
+
+						v[0].position = { x,y,1.0f };
 						v[0].color = string.color;
 						v[0].texcoord = { u0, v0 };
 
-						v[1].position = { x + characterWidth, y, 1.0f };
+						v[1].position = { x + w, y,1.0f };
 						v[1].color = string.color;
 						v[1].texcoord = { u1, v0 };
 
-						v[2].position = { x, y + characterHeight, 1.0f };
+						v[2].position = { x,y + h, 1.0f };
 						v[2].color = string.color;
 						v[2].texcoord = { u0, v1 };
 
-						v[3].position = { x + characterWidth, y + characterHeight, 1.0f };
+						v[3].position = { x + w, y + h, 1.0f };
 						v[3].color = string.color;
 						v[3].texcoord = { u1, v1 };
 
@@ -427,6 +430,17 @@ namespace hal
 		m_pDevice->CreateBuffer(&bd, NULL, m_pIndexBuffer.ReleaseAndGetAddressOf());
 
 		m_BufferSourceCharacterCount = characterCount;
+	}
+
+	void DebugText::SetOffset(float x, float y)
+	{
+		m_OffsetX = x;
+		m_OffsetY = y;
+	}
+
+	void DebugText::SetScale(float scale)
+	{
+		m_Scale = scale;
 	}
 
 }
