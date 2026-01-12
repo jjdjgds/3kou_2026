@@ -61,7 +61,7 @@ static int g_texid = -1;
 static int g_texid2 = -1;
 static int g_ShotCount = 0;
 static constexpr int MAX_SHOT = 2;
-static const XMFLOAT3 BALL_START_POS = { 3,5,2 };
+static const XMFLOAT3 BALL_START_POS = { 4,5,2 };
 static bool g_BallInPlay = false;
 
 static AABB g_GoalAABB;
@@ -71,10 +71,13 @@ static int g_PrevDownPinCount = 0;
 static float g_PinSettleTimer = 0.0f;
 static constexpr float PIN_SETTLE_TIME = 1.0f; // 1秒待つ
 static bool g_WaitingPinSettle = false;
+static int g_FrameCount = 0;
+static constexpr int MAX_FRAME = 4;
+static int g_PrevDownPinsThisThrow = 0;
 
 
 PinManager g_Pinmanager;
-
+float GameClamp(float v, float minV, float maxV);
 void Game_Initialize()
 {
 	g_GoalAABB = AABB::Make({ float(1.0f), 0.9f, float(1.0f) }, { 1,1,1 });
@@ -83,7 +86,7 @@ void Game_Initialize()
 	g_pShotCamera = new ShotCamera({ 0.0f,0.0f,50.0f }, {2.0f,1.0f,2.0f},2.0f);
 	g_FixedCameras[0] = new FixedCamera({ -5.0f, 10.0f, 10.0f }, AABB::Make({ 1.0f,5.00f,1.0f }, {5.0f,5.0f,5.0f}));
 	g_FixedCameras[1] = new FixedCamera({5.0f, 10.0f, 10.0f}, AABB::Make({ 6.0f,6.0f,6.0f }, { 20.0f,10.0f,20.0f }));
-	g_BowlingBall.Init({ 3,5,2 });
+	g_BowlingBall.Init(BALL_START_POS);
 	ScoreBoard_Initialize();
 //	Cube01tex = Texture_Load(L"rom\\saikoro_image.png");
 	Billboard_Initialize();
@@ -92,7 +95,7 @@ void Game_Initialize()
 	Light_Initialize();
 	
 //	Ball_Initialize({3,5,2});
-	Shot_Initialize({ 3,5,2 },g_pDebugCamera->GetFront());
+	Shot_Initialize(BALL_START_POS,g_pDebugCamera->GetFront());
 	Score_Initialize(100,100,2);
 	Trail_Initialize();
 	//df.fbx
@@ -105,6 +108,9 @@ void Game_Initialize()
 
 	g_pTestAnim = new AnimPattern(g_texid, 10, 5, 0.1, { 0,0 }, { 140,200});
 	g_pAnimPlayer = new AnimPatternPlayer(g_pTestAnim);
+	g_FrameCount = 0;
+	g_ShotCount = 0;
+	g_PrevDownPinCount = 0;
 
 
 	/*g_pTestAnim2 = new AnimPattern(g_texid2, 10, 5, 0.1, { 0,0 }, { 140,200 }, false);
@@ -117,7 +123,7 @@ void Game_Update(double elapsed_time)
 	g_time += elapsed_time;
 	g_pDebugCamera->Update(elapsed_time);
 	g_BowlingBall.Update(elapsed_time);
-
+	Shot_SetPosition(g_BowlingBall.GetPosition()); // ★追加
 
 
 	// ココを追加
@@ -146,19 +152,12 @@ void Game_Update(double elapsed_time)
 	{
 		g_Pinmanager.ResetPins();
 	}
-
-	/*for (auto& a : g_pins)
+	if (KeyLogger_IsPressed(KK_T))
 	{
-		a.Update(elapsed_time);
-		if (!a.IsDown())
-		{
-			Hit hit = g_BowlingBall.GetAABB().IsHit(a.GetAABB());
-			if (hit.IsHit())
-			{
-				ResolveBallPinHit(g_BowlingBall, a);
-			}
-		}
-	}*/
+		Scene_SetNextScene(SCENE_RESULT);
+	}
+
+	
 
 	
 	bool fired = Shot_ConsumeFire();
@@ -174,6 +173,7 @@ void Game_Update(double elapsed_time)
 		g_BallInPlay = false;
 		g_WaitingPinSettle = true;
 		g_PinSettleTimer = 0.0f;
+		g_PrevDownPinsThisThrow = g_Pinmanager.GetDownPinCount();
 	}
 	if (g_WaitingPinSettle)
 	{
@@ -186,21 +186,31 @@ void Game_Update(double elapsed_time)
 			g_BowlingBall.Reset(BALL_START_POS);
 
 			g_ShotCount++;
-			int remaining = g_Pinmanager.GetRemainingPinCount();
-			int totalFallen = 10 - remaining;
 
-			int fallenPins = totalFallen - g_PrevDownPinCount;
-			g_PrevDownPinCount = totalFallen;
+			int nowDown = g_Pinmanager.GetDownPinCount();
+			int fallenPins = nowDown - g_PrevDownPinsThisThrow;
+
+			// 念のため安全側
+			fallenPins = GameClamp(fallenPins, 0, 10);
 
 			bool isStrike = (fallenPins == 10 && g_ShotCount == 1);
-			//hal::dout << "Fallen Pins: " << fallenPins << " Total Down: " << totalDown << " Shot Count: " << g_ShotCount << "\n";
 			Score_AddThrow(fallenPins);
+
 
 			if (isStrike || g_ShotCount >= MAX_SHOT)
 			{
 				g_Pinmanager.ResetPins();
 				g_PrevDownPinCount = 0;
 				g_ShotCount = 0;
+				// ★ フレーム進行
+				g_FrameCount++;
+
+				// ★ 4フレーム終了 → リザルトへ
+				if (g_FrameCount >= MAX_FRAME)
+				{
+					Scene_SetNextScene(SCENE_RESULT);
+					return;
+				}
 			}
 		}
 	}
@@ -338,3 +348,9 @@ void Game_Finalize()
 
 
 
+float GameClamp(float v, float minV, float maxV)
+{
+	if (v < minV) return minV;
+	if (v > maxV) return maxV;
+	return v;
+}
