@@ -89,14 +89,30 @@ void DrawSymbol(
     float scale
 )
 {
-    // SYMBOL_NONE を無視
-    if (symbol < 0) return;
-    if (symbol == SYMBOL_NONE) return;
+    if (symbol < 0 || symbol == SYMBOL_NONE) return;
 
     int col = symbol % SHEET_COLS;
 
-    float srcY = GetSymbolSrcY(symbol);
-    float srcH = GetSymbolHeight(symbol);
+    int row = 0;
+    if (symbol >= DIGIT_0 && symbol <= DIGIT_4)
+    {
+        row = 0;
+    }
+    else if (symbol >= DIGIT_5 && symbol <= DIGIT_9)
+    {
+        row = 1;
+    }
+    else if (symbol == SYMBOL_X || symbol == SYMBOL_SPARE)
+    {
+        row = 2;
+    }
+    else
+    {
+        return;
+    }
+
+    float srcY = row * CELL_H_NUM;
+    float srcH = (row == 2) ? CELL_H_SYM : CELL_H_NUM;
 
     Sprite_Draw(
         texId,
@@ -108,7 +124,7 @@ void DrawSymbol(
         srcY,
         CELL_W,
         srcH,
-        {0,0,0,1}
+        { 0,0,0,1 }
     );
 }
 
@@ -226,6 +242,8 @@ void ScoreBoard_Draw()
                 (f.throw1 == 10) ? SYMBOL_X :
                 f.throw1;
 
+
+
             DrawSymbol(
                 g_NumberTexId,
                 symbol,
@@ -233,6 +251,9 @@ void ScoreBoard_Draw()
                 startY,
                 0.3f
             );
+
+
+
         }
 
         // --- 2投目 ---
