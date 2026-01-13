@@ -29,44 +29,24 @@ void Map_Initialize()
     for (int x = 1; x <= 20; ++x) {
         for (int z = 1; z <= 20; ++z) {
 
-            if (x == 1 && z == 1)
-            {
-                g_Blocks.push_back({ {float(x), 0.0f, float(z)}, Block::Normal });
+           
+         //g_Blocks.push_back({ {float(x), 1.0f, float(z)}, Block::Wood });
 
-            }
-            else
-            {
-                g_Blocks.push_back({ {float(x), 1.0f, float(z)}, Block::Normal });
-
-            }
+            
             
 
 
           
         }
     }
+    g_Blocks.push_back({ {4.0, 1.0f,10.0},{8.0,1.0,60.0}, Block::Wood });
 
+   
 
-    // 20~20ƒuƒƒbƒN¶¬
-    for (int x = 22; x <= 30; ++x) {
-        for (int z = 22; z <= 30; ++z) {
-            g_Blocks.push_back({ {float(x), 5.f, float(z)}, Block::Normal });
-        }
-    }
-
-    for (int x = 10; x <= 15; ++x) {
-        for (int z = 10; z <= 15; ++z) {
-            g_Blocks.push_back({ {float(x), 5.f, float(z)}, Block::Normal });
-        }
-    }
-    g_Blocks.push_back({ {3, 3.f, 3}, Block::GOAL });
-    g_Blocks.push_back({ {18, 5.f, 18}, Block::UFO });
-    g_Blocks.push_back({ { 10,2,3 }, Block::Star });
-   /// g_Blocks.push_back({ { 5,3,3 }, Block::StarCore });
-    g_Blocks.push_back({{ 3,3,3 }, Block::Moon});
 
     g_MapTexId[0] = Texture_Load(L"rom\\grass.jpg");
-    g_MapModels[0] = ModelLoad("rom\\Model\\kirby.fbx");
+    g_MapTexId[1] = Texture_Load(L"rom\\Texture\\jimen.jpg");
+    g_MapModels[0] = ModelLoad("rom\\Model\\jimen.fbx");
     g_MapModels[1] = ModelLoad("rom\\Model\\GoalPost.fbx");
     g_MapModels[2] = ModelLoad("rom\\Model\\UFO.fbx");
     g_MapModels[3] = ModelLoad("rom\\Model\\Star.fbx",2);
@@ -80,6 +60,11 @@ void Map_Initialize()
         case Block::Normal:
             block.SetAABB(AABB::Make(block.GetPosition(), { 1.0, 1.0, 1.0 }));
             break;
+
+        case Block::Wood:
+            block.SetAABB(AABB::Make(block.GetPosition(), block.GetScale()));
+            break;
+
         case Block::GOAL:
            // block.SetAABB(AABB::Make(block.GetPosition(), { 1.0, 1.0, 1.0 }));
             break;
@@ -118,7 +103,14 @@ void Map_Draw()
 
 void Block::Draw() const
 {
-    XMMATRIX mtxworld = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
+    XMMATRIX pos = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
+    XMMATRIX scale = XMMatrixScaling(
+        m_Scale.x,
+        m_Scale.y,
+        m_Scale.z
+    );
+
+    XMMATRIX mtxworld = scale*pos ;
 
     switch (m_Type)
     {
@@ -126,6 +118,11 @@ void Block::Draw() const
         break;
     case Block::Normal:
         Cube_Draw(mtxworld, g_MapTexId[0]);
+        break;
+
+    case Block::Wood:
+        Cube_Draw(mtxworld, g_MapTexId[1]);
+        //ModelDraw(g_MapModels[0],mtxworld);
         break;
     case Block::Tree:
     case Block::Rock:
