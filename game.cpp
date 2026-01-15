@@ -64,7 +64,12 @@ static int g_texid = -1;
 static int g_texid2 = -1;
 static int g_ShotCount = 0;
 static constexpr int MAX_SHOT = 2;
-static const XMFLOAT3 BALL_START_POS = { 4,5,2 };
+
+
+
+static const XMFLOAT3 BALL_START_POS = { 4,5,-38 };
+
+
 static bool g_BallInPlay = false;
 
 static AABB g_GoalAABB;
