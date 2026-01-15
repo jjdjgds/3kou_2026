@@ -93,7 +93,9 @@ void Game_Initialize()
 {
 	g_GoalAABB = AABB::Make({ float(1.0f), 0.9f, float(1.0f) }, { 1,1,1 });
 	DebugDraw_Initialize();
-	g_pDebugCamera = new DebugCamera({ BALL_START_POS }, { 0.0f,0.0f,0.0f });
+	XMFLOAT3 a = BALL_START_POS;
+	a.z -= 7;
+	g_pDebugCamera = new DebugCamera({ a }, { 0.0f,0.0f,0.0f });
 	g_pShotCamera = new ShotCamera({ 0.0f,0.0f,50.0f }, {2.0f,1.0f,2.0f},2.0f);
 	g_FixedCameras[0] = new FixedCamera({ -5.0f, 10.0f, 10.0f }, AABB::Make({ 1.0f,5.00f,1.0f }, {5.0f,5.0f,5.0f}));
 	g_FixedCameras[1] = new FixedCamera({5.0f, 10.0f, 10.0f}, AABB::Make({ 6.0f,6.0f,6.0f }, { 20.0f,10.0f,20.0f }));
@@ -104,16 +106,17 @@ void Game_Initialize()
 	Gulid_Initialize(10,10,1);
 	Map_Initialize();
 	Light_Initialize();
-	
+	a.z += 20;
+	//a.z += 30;
 //	Ball_Initialize({3,5,2});
-	Shot_Initialize(BALL_START_POS,g_pDebugCamera->GetFront());
+	hal::dout << a.z;
+	Shot_Initialize(a,g_pDebugCamera->GetFront());
 	Score_Initialize(100,100,2);
 	Trail_Initialize();
 	//df.fbx
 	//g_pPenis = ModelLoad("rom\\Model\\yajirusi.fbx",0.1);
 	g_texid = Texture_Load(L"rom\\Texture\\gra_effect_lightA.png");
-	g_pKirby = ModelLoad("rom\\Model\\kirby.fbx",0.1);
-	g_texid2 = Texture_Load(L"rom\\bomb3.png");
+	
 	g_Pinmanager.Initialize();
 
 
@@ -180,10 +183,7 @@ void Game_Update(double elapsed_time)
 		// 追加: 投球直前の「残っているピン数」も記録しておく（削除を踏まえた差分算出用）
 		g_PrevRemainingPinsThisThrow = g_Pinmanager.GetRemainingPinCount();
 
-		// デバッグログ：投球時の基準値
-		hal::dout << "Shot fired. prevDownPinsThisThrow=" << g_PrevDownPinsThisThrow
-			<< " prevRemaining=" << g_PrevRemainingPinsThisThrow << std::endl;
-
+	
 		g_BowlingBall.AddForce(Shot_GetShotVelocity());
 		Shot_ResetPower();
 		g_BallInPlay = true;
@@ -212,11 +212,7 @@ void Game_Update(double elapsed_time)
 
 			// デバッグログ（確定前）
 			int nowDown = g_Pinmanager.GetDownPinCount();
-			hal::dout << "Pin settle (before remove): prevDown=" << g_PrevDownPinsThisThrow
-				<< " nowDown=" << nowDown
-				<< " prevRemaining=" << g_PrevRemainingPinsThisThrow
-				<< std::endl;
-
+		
 			// 実際に死んだピンを削除（ここで remaining が減る）
 			g_Pinmanager.RemoveDeadPins();
 
@@ -227,18 +223,11 @@ void Game_Update(double elapsed_time)
 			if (fallenPins < 0) fallenPins = 0;
 			fallenPins = static_cast<int>(GameClamp((float)fallenPins, 0.0f, 10.0f));
 
-			// デバッグログ：確定時の情報（削除後ベース）
-			hal::dout << "Pin settle (after remove): remainingAfterRemove=" << remainingAfterRemove
-				<< " computedFallen=" << fallenPins
-				<< std::endl;
-
+		
 			bool isStrike = (fallenPins == 10 && g_ShotCount == 1);
 			Score_AddThrow(fallenPins);
 
-			// デバッグログ：RemoveDeadPins 後の残数/ダウン数
-			hal::dout << "After RemoveDeadPins, remainingPins=" << g_Pinmanager.GetRemainingPinCount()
-				<< " downCount=" << g_Pinmanager.GetDownPinCount() << std::endl;
-
+			
 			g_BowlingBall.Reset(BALL_START_POS);
 
 			if (isStrike || g_ShotCount >= MAX_SHOT)

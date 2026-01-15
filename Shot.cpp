@@ -11,7 +11,9 @@
 using namespace DirectX;
 
 static XMFLOAT3 g_position;
-static constexpr float OFFSET_LENGTH = 0.5f;
+static XMFLOAT3 g_scale;
+
+static constexpr float OFFSET_LENGTH = 5.f;
 
 static XMFLOAT3 g_Front{ 0,0,1 };   // 単位方向
 static MODEL* g_Model{};
@@ -96,6 +98,8 @@ void Shot_Initialize(const XMFLOAT3& position, const XMFLOAT3& front)
         260.0f,               // 表示位置X
         520.0f                // 表示位置Y（円ゲージ中央付近）
     );
+    Shot_SetPosition(g_position);
+    g_scale = { 3,3,3 };
 }
 
 void Shot_Finalize()
@@ -108,7 +112,7 @@ void Shot_Update(double et)
 {
     POINT cur;
     GetCursorPos(&cur);
-
+    Shot_SetPosition(g_position);
    // float dx = float(cur.x - g_PrevMousePos.x);
     //float dy = float(cur.y - g_PrevMousePos.y);
     //g_PrevMousePos = cur;
@@ -195,13 +199,12 @@ float Clamp(float v, float minV, float maxV)
 }
 void Shot_Draw()
 {
+   
     if (g_State != ShotState::Aim)
         return;
 
-    // 向き（Yaw回転のみ）
     XMMATRIX rot = XMMatrixRotationY(g_AimAngle);
 
-    // ローカル前方にオフセット
     XMVECTOR offset =
         XMVector3TransformCoord(
             XMVectorSet(0, 0, OFFSET_LENGTH, 0),
@@ -210,19 +213,19 @@ void Shot_Draw()
 
     XMFLOAT3 ofs;
     XMStoreFloat3(&ofs, offset);
-
-    // ワールド行列
+    //hal::dout << g_position.z + ofs.z;
     XMMATRIX world =
         rot *
+        XMMatrixScaling(g_scale.x, g_scale.y, g_scale.z) *
         XMMatrixTranslation(
             g_position.x + ofs.x,
             g_position.y - BALL_RADIUS,
             g_position.z + ofs.z
         );
 
-
     ModelDraw(g_Model, world);
 }
+
 
 
 
@@ -315,7 +318,7 @@ void Shot_DrawUI()
     g_DebugText->Clear();
     g_DebugText->SetScale(3.f);
     g_DebugText->SetOffset(valueX, valueY);
-    g_DebugText->SetText(value, { 0,0,0,1 });
+    g_DebugText->SetText(value, { 1,1,1,1 });
     g_DebugText->Draw();
 }
 
