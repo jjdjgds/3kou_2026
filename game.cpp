@@ -33,6 +33,7 @@
 #include "ScoreBoard.h"
 
 #include "debug_ostream.h" // 追加：ログ出力用
+#include "trail_explosion.h"
 
 using namespace DirectX;
 
@@ -126,7 +127,7 @@ void Game_Initialize()
 	g_ShotCount = 0;
 	g_PrevDownPinCount = 0;
 
-
+	TrailExplosion_Initialize();
 	/*g_pTestAnim2 = new AnimPattern(g_texid2, 10, 5, 0.1, { 0,0 }, { 140,200 }, false);
 	g_pAnimPlayer2 = new AnimPatternPlayer(g_pTestAnim2);*/
 
@@ -156,11 +157,15 @@ void Game_Update(double elapsed_time)
 		}
 	}
 	g_FixedCameras[g_FixedCameraIndex]->SetMatrix();
+
+
 	Billboard_SetViewMatrix(g_pDebugCamera->GetViewMatrix());
+	TrailExplosion_SetCameraPosition(g_pDebugCamera->GetPosition());
 	//Direct3D_SetDepthTest(true);
 	//g_pAnimPlayer->BillboardDraw({ 3.0, 2.0f, 2.0f }, { 0.7,1 }, {0.5,0.5});
+	 // 爆発更新
+	TrailExplosion_Update(elapsed_time);
 	
-
 	Score_Update();
 	if (KeyLogger_IsPressed(KK_R))
 	{
@@ -170,7 +175,7 @@ void Game_Update(double elapsed_time)
 	{
 		Scene_SetNextScene(SCENE_RESULT);
 	}
-
+	
 	
 
 	
@@ -290,7 +295,7 @@ void Game_Draw()
 	//Direct3D_SetDepthWriteDisable();
 	//g_pAnimPlayer->BillboardDraw({ 3.0, 2.0f, 2.0f }, { 0.7,1 }, {0.5,0.5});
 	
-
+	
 	g_BowlingBall.Draw();
 	g_Pinmanager.Draw();
 
@@ -321,6 +326,7 @@ void Game_Draw()
 	//
 	Map_Draw();
 	DebugDraw_Draw();
+	TrailExplosion_Draw();
 	//2D描画はここに
 	Direct3D_SetDepthTest(false);
 	Shot_DrawUI();
@@ -369,6 +375,7 @@ void Game_Finalize()
 	Light_Finalize();
 	Shot_Finalize();
 	Trail_Finalize();
+	TrailExplosion_Finalize();
 }
 
 

@@ -1,6 +1,7 @@
 #include "pins.h"
 #include "cube.h"
 #include "DebugDraw.h"
+#include "trail_explosion.h"
 using namespace DirectX;
 
 static constexpr float GRAVITY = -9.8f;
@@ -181,6 +182,16 @@ void Pins::Hit(const XMFLOAT3& impulse, const XMFLOAT3& hitPoint)
     m_angularVelocity.x += t.x * 3.f;
     m_angularVelocity.y += t.y * 3.f;
     m_angularVelocity.z += t.z * 3.f;
+
+
+  
+
+    
+      
+    
+
+    
+
 }
 
 bool Pins::IsDown() const

@@ -1,5 +1,6 @@
 #include "PinManager.h"
 #include "bowlingBall.h"
+#include "trail_explosion.h"
 using namespace DirectX;
 static constexpr float PIN_SPACING_X = 1.6f;   // ‰¡ŠÔŠu
 static constexpr float PIN_SPACING_Z = 1.6f;   // ‰œsŠÔŠu
@@ -111,6 +112,8 @@ void PinManager::ResolveBallPinHit(BowlingBall& ball, Pins& pin)
     impulseVec.y += impulsePower;
 
     pin.Hit(impulseVec, hitPoint);
+    // •úËó”š”­
+    TrailExplosion_CreateRadial(pin.GetPosition(), 0.5f);
 
 }
 
