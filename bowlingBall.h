@@ -52,5 +52,5 @@ private:
     float m_radius = 0.3f;   // レーン基準の半径
     float m_mass = 6.8f;    // ボーリング球っぽい重さ(kg)
     DirectX::XMMATRIX m_mtxWorld{};
-
+    bool m_gatterFlg = false;
 };

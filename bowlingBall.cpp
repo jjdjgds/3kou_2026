@@ -53,21 +53,30 @@ void BowlingBall::Update(float deltaTime)
 
     m_onGround = false;
 
+   
+
     // ===== Map 衝突 =====
     for (int i = 0; i < MapGetBlockCount(); ++i)
     {
-        const AABB& block = GetCollision(i);
-        Hit hit = m_Aabb.IsHit(block);
+
+        const Block& block = MapGetBlock(i);
+        const AABB& blockAabb = GetCollision(i);
+
+
+        Hit hit = m_Aabb.IsHit(blockAabb);
+        
+          
+
 
         if (!hit.IsHit()) continue;
 
         // 各軸の貫入深度を再計算（球側=AABB g_Aabb, ブロック=block）
         float depth_x =
-            std::min(m_Aabb.GetMax().x, block.GetMax().x) - std::max(m_Aabb.GetMin().x, block.GetMin().x);
+            std::min(m_Aabb.GetMax().x, blockAabb.GetMax().x) - std::max(m_Aabb.GetMin().x, blockAabb.GetMin().x);
         float depth_y =
-            std::min(m_Aabb.GetMax().y, block.GetMax().y) - std::max(m_Aabb.GetMin().y, block.GetMin().y);
+            std::min(m_Aabb.GetMax().y, blockAabb.GetMax().y) - std::max(m_Aabb.GetMin().y, blockAabb.GetMin().y);
         float depth_z =
-            std::min(m_Aabb.GetMax().z, block.GetMax().z) - std::max(m_Aabb.GetMin().z, block.GetMin().z);
+            std::min(m_Aabb.GetMax().z, blockAabb.GetMax().z) - std::max(m_Aabb.GetMin().z, blockAabb.GetMin().z);
 
         // 最も浅い軸を選ぶ
         int shallow_axis = 0; // 0:x, 1:y, 2:z
@@ -79,7 +88,7 @@ void BowlingBall::Update(float deltaTime)
         }
 
         const XMFLOAT3& ballCenter = m_Aabb.GetCenter();
-        const XMFLOAT3& blockCenter = block.GetCenter();
+        const XMFLOAT3& blockCenter = blockAabb.GetCenter();
         const XMFLOAT3& ballHalf = m_Aabb.GetHalfSize();
 
         // 軸ごとに押し戻す（半幅を使う）
@@ -88,14 +97,14 @@ void BowlingBall::Update(float deltaTime)
             if (ballCenter.y > blockCenter.y)
             {
                 // ボールはブロックの上にいる → ブロックの上面に乗せる
-                m_position.y = block.GetMax().y + ballHalf.y;
+                m_position.y = blockAabb.GetMax().y + ballHalf.y;
                 m_velocity.y = 0.0f;
                 m_onGround = true;
             }
             else
             {
                 // ボールはブロックの下にいる（押し上げられている）→ 下側へスナップ
-                m_position.y = block.GetMin().y - ballHalf.y;
+                m_position.y = blockAabb.GetMin().y - ballHalf.y;
                 m_velocity.y = 0.0f;
             }
         }
@@ -103,11 +112,11 @@ void BowlingBall::Update(float deltaTime)
         {
             if (ballCenter.x > blockCenter.x)
             {
-                m_position.x = block.GetMax().x + ballHalf.x;
+                m_position.x = blockAabb.GetMax().x + ballHalf.x;
             }
             else
             {
-                m_position.x = block.GetMin().x - ballHalf.x;
+                m_position.x = blockAabb.GetMin().x - ballHalf.x;
             }
             m_velocity.x = 0.0f;
         }
@@ -115,17 +124,31 @@ void BowlingBall::Update(float deltaTime)
         {
             if (ballCenter.z > blockCenter.z)
             {
-                m_position.z = block.GetMax().z + ballHalf.z;
+                m_position.z = blockAabb.GetMax().z + ballHalf.z;
             }
             else
             {
-                m_position.z = block.GetMin().z - ballHalf.z;
+                m_position.z = blockAabb.GetMin().z - ballHalf.z;
             }
             m_velocity.z = 0.0f;
         }
 
         // 補正後に AABB を移動して次の判定に反映
         m_Aabb.Move(m_position);
+        if (hit.IsHit())
+        {
+            if (block.GetType() == Block::Type::Gutter)
+            {
+
+                m_velocity.x = 0;
+                m_velocity.y = 0;
+                m_velocity.z -=0.001;
+
+            }
+
+            continue;
+
+        }
     }
   
 
@@ -134,7 +157,8 @@ void BowlingBall::Update(float deltaTime)
     if (m_onGround)
     {
         m_velocity.x *= 0.98f;
-        m_velocity.z *= 0.98f;
+
+        (m_gatterFlg) ? m_velocity.z *= 0.98f : m_velocity.z *= 1.0f;
     }
 
    

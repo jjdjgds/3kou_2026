@@ -24,6 +24,7 @@ public:
 		EMPTY,
 		Normal,
 		Wood,
+		Gutter,
 		Tree,
 		Rock,
 		WALL,
@@ -51,16 +52,20 @@ public:
 		
 
 	}
+
+	
+
 	const DirectX::XMFLOAT3& GetScale() const { return m_Scale; }
 
 	const DirectX::XMFLOAT3& GetPosition()const { return m_Position; }
 	void SetAABB(const AABB& aabb) { m_Aabb = aabb; }
 	const AABB& GetAABB() { return m_Aabb; }
-	const Type& GetType() { return m_Type; }
+	Type GetType() const  { return m_Type; }
 	void Draw() const;
 };
 
 
+const Block& MapGetBlock(int index);
 int MapGetBlockCount();
 const AABB& GetCollision(int index);
 void Map_Initialize();

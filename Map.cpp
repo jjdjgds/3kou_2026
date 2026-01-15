@@ -13,6 +13,13 @@ static MODEL* g_MapModels[MODEL_MAX]{};
 
 std::vector<Block> g_Blocks;
 
+
+
+const Block& MapGetBlock(int index)
+{
+    return g_Blocks[index];
+}
+
 int MapGetBlockCount()
 {
     return static_cast<int>(g_Blocks.size());
@@ -25,27 +32,18 @@ const AABB& GetCollision(int index)
 
 void Map_Initialize()
 {
-    // 20Å~20ÉuÉçÉbÉNê∂ê¨
-    for (int x = 1; x <= 20; ++x) {
-        for (int z = 1; z <= 20; ++z) {
-
-           
-         //g_Blocks.push_back({ {float(x), 1.0f, float(z)}, Block::Wood });
-
-            
-            
-
-
-          
-        }
-    }
-    g_Blocks.push_back({ {4.0, 1.0f,10.0},{8.0,1.0,60.0}, Block::Wood });
-
    
+    g_Blocks.push_back({ {4.0, 1.0f,10.0},{8.0,1.0,60.0}, Block::Wood });
+    g_Blocks.push_back({ {-0.50, 0.9f,10.0},{1.0,1.0,60.0}, Block::Gutter});
+    g_Blocks.push_back({ {8.50, 0.9f,10.0},{1.0,1.0,60.0}, Block::Gutter });
+    g_Blocks.push_back({ {3, 1.0f,20.0},{15.0,10.0,1.0}, Block::Gutter });
+
 
 
     g_MapTexId[0] = Texture_Load(L"rom\\grass.jpg");
     g_MapTexId[1] = Texture_Load(L"rom\\Texture\\jimen.jpg");
+    g_MapTexId[2] = Texture_Load(L"rom\\Texture\\kuro.png");
+
     g_MapModels[0] = ModelLoad("rom\\Model\\jimen.fbx");
     g_MapModels[1] = ModelLoad("rom\\Model\\GoalPost.fbx");
     g_MapModels[2] = ModelLoad("rom\\Model\\UFO.fbx");
@@ -63,6 +61,12 @@ void Map_Initialize()
 
         case Block::Wood:
             block.SetAABB(AABB::Make(block.GetPosition(), block.GetScale()));
+            break;
+
+        case Block::Gutter:
+            XMFLOAT3 blockScale = block.GetScale();
+            blockScale.y += 5;
+            block.SetAABB(AABB::Make(block.GetPosition(), blockScale));
             break;
 
         case Block::GOAL:
@@ -124,6 +128,12 @@ void Block::Draw() const
         Cube_Draw(mtxworld, g_MapTexId[1]);
         //ModelDraw(g_MapModels[0],mtxworld);
         break;
+
+    case Block::Gutter:
+
+        Cube_Draw(mtxworld, g_MapTexId[2]);
+        break;
+
     case Block::Tree:
     case Block::Rock:
     case Block::WALL:
