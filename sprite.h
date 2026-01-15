@@ -57,13 +57,7 @@ void Sprite_DrawCenter(
 );
 
 
-//void Sprite_Draw(
-//	int texid,
-//	float x,float y,
-//	float widht,float height,
-//	int tx,int ty,
-//	int tw,int th
-//);
+
 
 
 

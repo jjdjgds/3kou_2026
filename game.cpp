@@ -35,7 +35,7 @@
 #include "debug_ostream.h" // 追加：ログ出力用
 #include "trail_explosion.h"
 #include "DirectionCamera.h"
-
+#include "UI.h"
 using namespace DirectX;
 
 
@@ -119,6 +119,7 @@ void Game_Initialize()
 	Shot_Initialize(a,g_pDebugCamera->GetFront());
 	Score_Initialize(100,100,2);
 	Trail_Initialize();
+	UI::Initialize(); // ← 追加
 	//df.fbx
 	//g_pPenis = ModelLoad("rom\\Model\\yajirusi.fbx",0.1);
 	g_texid = Texture_Load(L"rom\\Texture\\gra_effect_lightA.png");
@@ -145,7 +146,7 @@ void Game_Update(double elapsed_time)
 
 	g_BowlingBall.Update(elapsed_time);
 	Shot_SetPosition(g_BowlingBall.GetPosition()); // ★追加
-
+	UI::Update(elapsed_time);
 
 	// ココを追加
 	//Cube_Update(elapsed_time);
@@ -227,44 +228,46 @@ void Game_Update(double elapsed_time)
 		if (g_PinSettleTimer >= PIN_SETTLE_TIME)
 		{
 			g_WaitingPinSettle = false;
-
-
 			g_ShotCount++;
 
-			// --- 変更: 倒れた本数の算出を RemoveDeadPins 後の残数差分に変更 ---
-			// RemoveDeadPins に依存すると dead フラグの遅延で不安定になるため、
-			// 投球時の remaining から RemoveDeadPins 後の remaining を引く方法に変更します。
-
-			// デバッグログ（確定前）
 			int nowDown = g_Pinmanager.GetDownPinCount();
-		
-			// 実際に死んだピンを削除（ここで remaining が減る）
 			g_Pinmanager.RemoveDeadPins();
 
 			int remainingAfterRemove = g_Pinmanager.GetRemainingPinCount();
-
-			// 投球時の残数 - 現在の残数 = 今回倒れた本数
 			int fallenPins = g_PrevRemainingPinsThisThrow - remainingAfterRemove;
 			if (fallenPins < 0) fallenPins = 0;
 			fallenPins = static_cast<int>(GameClamp((float)fallenPins, 0.0f, 10.0f));
 
-		
+			// ★★★ ここから追加 ★★★
 			bool isStrike = (fallenPins == 10 && g_ShotCount == 1);
-			Score_AddThrow(fallenPins);
+			bool isSpare = (fallenPins > 0 && remainingAfterRemove == 0 && g_ShotCount == 2);
+			bool isGutter = (fallenPins == 0);
 
-			
+			// UI通知を表示
+			if (isStrike)
+			{
+				UI::ShowNotification(UI::NotificationType::STRIKE);
+			}
+			else if (isSpare)
+			{
+				UI::ShowNotification(UI::NotificationType::SPARE);
+			}
+			else if (isGutter)
+			{
+				UI::ShowNotification(UI::NotificationType::GUTTER);
+			}
+			// ★★★ ここまで追加 ★★★
+
+			Score_AddThrow(fallenPins);
 			g_BowlingBall.Reset(BALL_START_POS);
 
 			if (isStrike || g_ShotCount >= MAX_SHOT)
 			{
-				// g_Pinmanager.ResetPins();
-				g_Pinmanager.DestroyAndRecreatePins(); // <- ここを変更
+				g_Pinmanager.DestroyAndRecreatePins();
 				g_PrevDownPinCount = 0;
 				g_ShotCount = 0;
-				// ★ フレーム進行
 				g_FrameCount++;
 
-				// ★ 4フレーム終了 → リザルトへ
 				if (g_FrameCount >= MAX_FRAME)
 				{
 					Scene_SetNextScene(SCENE_RESULT);
@@ -273,7 +276,6 @@ void Game_Update(double elapsed_time)
 			}
 		}
 	}
-
 	g_Pinmanager.Update(elapsed_time, g_BowlingBall);
 
 	Hit hit = g_GoalAABB.IsHit(Ball_GetAABB());
@@ -359,22 +361,9 @@ void Game_Draw()
 	Direct3D_SetDepthTest(false);
 	Shot_DrawUI();
 	ScoreBoard_Draw();
+	UI::Draw();
 
-
-	//Score_Draw();
-	/*Billboard_Draw(
-		g_texid,
-		g_BowlingBall.GetWorldMatrix(),
-		{ 140.0f,200.0f },
-		{ 140.0f,200.0f },
-		{ 14.f,20.f },
-		{ 1.0,0.5,0.1,1.0 },
-		{ 0,0 }
-	);*/
-
-	//Billboard_Draw(g_texid, XMMatrixTranslation(3.0, 2.0f, 2.0f), 
-	//	{ 140.0f,200.0f }, { 14.0f,20.0f }); // world を Identity にするか、任意のワールド行列を渡す
-	//g_pAnimPlayer->BillboardDraw({ 3.0, 2.0f }, { 0.14,0.2 });
+	
 	if(g_IsGoal)
 	{
 		XMFLOAT3 pos = g_GoalAABB.GetCenter();
@@ -404,6 +393,7 @@ void Game_Finalize()
 	Shot_Finalize();
 	Trail_Finalize();
 	TrailExplosion_Finalize();
+	UI::Finalize();
 }
 
 

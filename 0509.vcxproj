@@ -191,6 +191,7 @@
     <ClCompile Include="titile.cpp" />
     <ClCompile Include="trail.cpp" />
     <ClCompile Include="trail_explosion.cpp" />
+    <ClCompile Include="UI.cpp" />
     <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -245,6 +246,7 @@
     <ClInclude Include="titile.h" />
     <ClInclude Include="trail.h" />
     <ClInclude Include="trail_explosion.h" />
+    <ClInclude Include="UI.h" />
     <ClInclude Include="WICTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>
