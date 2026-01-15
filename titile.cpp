@@ -48,7 +48,7 @@ void Title_Initialize()
 {
 	//Fade_StartIn(100,false); // フェードイン開始
 
-	g_TitleTex = Texture_Load(L"rom\\title.png"); // タイトルテクスチャの読み込み
+	g_TitleTex = Texture_Load(L"rom\\Texture\\title.png"); // タイトルテクスチャの読み込み
 	g_TexPushAnyKeyId = Texture_Load(L"rom\\Push_Enter_Key.png"); // キーを押してくださいテクスチャの読み込み
 	
 	//setumeiTexId[3] = Texture_Load(L"rom\\Push_Enter_Key.png");
