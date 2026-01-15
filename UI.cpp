@@ -11,7 +11,7 @@ namespace UI
     static int g_StrikeTex = -1;
     static int g_SpareTex = -1;
     static int g_GutterTex = -1;
-
+    static int g_setumeiTex = -1;
     // 現在の通知状態
     static NotificationType g_CurrentNotification = NotificationType::NONE;
 
@@ -20,6 +20,9 @@ namespace UI
     static float g_DisplayDuration = 2.0f;     // 表示時間（秒）
     static float g_FadeInDuration = 0.5f;      // フェードイン時間（秒）
     static float g_FadeOutDuration = 0.5f;     // フェードアウト時間（秒）
+    constexpr float SCREEN_WIDTH = 1920.0f;
+    constexpr float SCREEN_HEIGHT = 720.0f;
+    constexpr float UI_MARGIN = 20.0f;
 
     // イージング関数（EaseOutCubic）
     float EaseOutCubic(float t)
@@ -46,7 +49,7 @@ namespace UI
         g_StrikeTex = Texture_Load(L"rom\\Texture\\Strike.png");
         g_SpareTex = Texture_Load(L"rom\\Texture\\Spare.png");
         g_GutterTex = Texture_Load(L"rom\\Texture\\Gutter.png");
-
+        g_setumeiTex = Texture_Load(L"rom\\Texture\\setumei.png");
         g_CurrentNotification = NotificationType::NONE;
         g_AnimTimer = 0.0f;
     }
@@ -70,6 +73,28 @@ namespace UI
 
     void Draw()
     {
+        //==============================
+  // setumei を右下に常時表示
+  //==============================
+        if (g_setumeiTex != -1)
+        {
+            const float width = 400.0f;
+            const float height = 200.0f;
+
+            float x = SCREEN_WIDTH - width * 0.5f - UI_MARGIN-400;
+            float y = SCREEN_HEIGHT - height * 0.5f - UI_MARGIN-500;
+
+            XMFLOAT4 color = { 1,1,1,1 };
+
+            Sprite_DrawCenter(
+                g_setumeiTex,
+                x,
+                y,
+                width,
+                height,
+                color
+            );
+        }
         // 通知が無い場合は何も描画しない
         if (g_CurrentNotification == NotificationType::NONE)
             return;
@@ -140,6 +165,8 @@ namespace UI
             height,
             color
         );
+
+
     }
 
     void Finalize()
