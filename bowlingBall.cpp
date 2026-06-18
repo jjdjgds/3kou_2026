@@ -5,7 +5,6 @@
 #include "DebugDraw.h" // 追加
 #include "Map.h"
 #include "Shot.h"
-#include "AuraEffect.h"
 #include "texture.h"
 #include "ParticleEffect.h"
 #include "lighth.h" // 追加：ライト初期化／設定用
@@ -15,6 +14,8 @@ static int g_Texid = -1;
 
 BowlingBall::BowlingBall()
 {
+
+
 }
 
 void BowlingBall::Init(const XMFLOAT3& pos)
@@ -25,7 +26,7 @@ void BowlingBall::Init(const XMFLOAT3& pos)
     m_Aabb = g_pBall->Aabb;
     m_Aabb = AABB::Make(GetPosition(), {2.f,2.f,2.f});
     g_Texid = Texture_Load(L"rom\\Texture\\gra_effect_lightA.png");
-    AuraEffect_Initialize();
+   
     ParticleEffect_Initialize();
 
     // ライト初期化 — 全体的に暗い問題をまず緩和するために ambient を上げる

@@ -142,7 +142,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
-    <ClCompile Include="AuraEffect.cpp" />
     <ClCompile Include="Ball.cpp" />
     <ClCompile Include="BillBord.cpp" />
     <ClCompile Include="bowlingBall.cpp" />
@@ -196,7 +195,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio.h" />
-    <ClInclude Include="AuraEffect.h" />
     <ClInclude Include="Ball.h" />
     <ClInclude Include="BillBord.h" />
     <ClInclude Include="bowlingBall.h" />

@@ -219,6 +219,7 @@ void Score_Recalculate()
 void ScoreBoard_Draw()
 {
     // デバッグ：現在保持しているフレーム情報を毎フレーム出力（調査用）
+#ifdef _DEBUG
     {
         std::ostringstream oss;
         oss << "ScoreBoard frames:";
@@ -227,6 +228,9 @@ void ScoreBoard_Draw()
         }
         hal::dout << oss.str() << std::endl;
     }
+#endif // _DEBUG
+
+   
 
     Sprite_Draw(
         g_ScoreBoardTexId,

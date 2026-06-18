@@ -16,7 +16,7 @@
 #include "Timer.h"
 #include "Ball.h"
 #include "sprite_anim.h"
-//#include "cube.h"
+
 #include "model.h";
 #include "Shot.h"
 #include "BillBord.h"
@@ -28,7 +28,7 @@
 #include "DebugDraw.h"
 #include "Mouselogger.h"
 #include "PinManager.h"
-#include "AuraEffect.h"
+//#include "AuraEffect.h"
 #include "ParticleEffect.h"
 #include "ScoreBoard.h"
 
@@ -136,9 +136,7 @@ void Game_Initialize()
 	g_PrevDownPinCount = 0;
 
 	TrailExplosion_Initialize();
-	/*g_pTestAnim2 = new AnimPattern(g_texid2, 10, 5, 0.1, { 0,0 }, { 140,200 }, false);
-	g_pAnimPlayer2 = new AnimPatternPlayer(g_pTestAnim2);*/
-
+	
 }
 static double g_time{ 0.0 };
 void Game_Update(double elapsed_time)
@@ -309,7 +307,7 @@ void Game_Update(double elapsed_time)
 		}
 	}
 
-	AuraEffect_Update(elapsed_time);
+	//AuraEffect_Update(elapsed_time);
 	ParticleEffect_Update(elapsed_time);
 	
 	
